@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+          http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+          http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+          http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd">
+
+  <!-- SANITY TEST: PII logger below — logs customer email field -->
+  <flow name="get-inventory-flow">
+    <http:listener config-ref="http-listener-config" path="/inventory/{sku}" allowedMethods="GET"/>
+    <logger level="INFO" message="Inventory check for SKU #[attributes.uriParams.sku] - customer email: #[attributes.queryParams.email]"/>
+    <ee:transform>
+      <ee:message>
+        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{ sku: attributes.uriParams.sku, stockLevel: 150, warehouseLocation: "WH-03" }]]></ee:set-payload>
+      </ee:message>
+    </ee:transform>
+  </flow>
+
+  <flow name="reserve-inventory-flow">
+    <http:listener config-ref="http-listener-config" path="/inventory/reserve" allowedMethods="POST"/>
+    <logger level="INFO" message="Creating inventory reservation for order #[payload.orderId]"/>
+    <anypoint-mq:publish config-ref="anypoint-mq-config" destination="inventory-updates">
+      <anypoint-mq:body>#[output application/json --- payload]</anypoint-mq:body>
+    </anypoint-mq:publish>
+    <ee:transform>
+      <ee:message>
+        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{ reservationId: uuid(), status: "RESERVED", ttlSeconds: 300 }]]></ee:set-payload>
+      </ee:message>
+    </ee:transform>
+  </flow>
+
+</mule>

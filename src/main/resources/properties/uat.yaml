@@ -1,0 +1,16 @@
+# UAT properties - warroom-inventory-api
+# SANITY TEST: notification.emailAddress exists here but NOT in prod.yaml -> triggers UAT parity WARN
+mule.env: uat
+http.port: 8081
+
+anypoint.mq.clientId: uat-client-id-12345
+anypoint.mq.clientSecret: uat-client-secret-xyz
+anypoint.mq.url: https://mq-us-east-1.anypoint.mulesoft.com/api/v1
+
+# Customer notification config (UAT only - not yet in prod)
+notification.emailAddress: inventory-alerts-uat@example.com
+notification.slackWebhook: https://hooks.slack.com/services/UAT/WEBHOOK
+
+log.level: DEBUG
+
+api.autodiscovery.id: "warroom-inventory-api-uat"

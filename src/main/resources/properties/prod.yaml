@@ -1,0 +1,12 @@
+# Production properties - warroom-inventory-api
+# SANITY TEST: Note - notification.emailAddress is MISSING from prod (exists in uat.yaml) -> UAT parity WARN
+mule.env: prod
+http.port: 8081
+
+anypoint.mq.clientId: ${anypoint.mq.clientId}
+anypoint.mq.clientSecret: ${anypoint.mq.clientSecret}
+anypoint.mq.url: https://mq-us-east-1.anypoint.mulesoft.com/api/v1
+
+log.level: INFO
+
+api.autodiscovery.id: "warroom-inventory-api-prod"
